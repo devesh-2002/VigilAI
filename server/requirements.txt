@@ -4,8 +4,6 @@ google-auth
 google-auth-oauthlib
 google-api-python-client
 pydantic
-langchain
 boto3
-langchain-community
 python-dotenv
 openai
