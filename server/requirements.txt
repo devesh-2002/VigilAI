@@ -7,3 +7,4 @@ pydantic
 boto3
 python-dotenv
 openai
+tensorflow

@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 import base64
 import os
 from google_auth import get_latest_emails, get_credentials
+from tensorflow.keras.models import load_model
+from fastapi import FastAPI, File, UploadFile
+
 load_dotenv()
 
 app = FastAPI()
@@ -154,3 +157,35 @@ async def query_email():
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"response": generated_response}
+
+def preprocess_file(file_path, max_length=1024):
+    with open(file_path, 'rb') as f:
+        data = np.frombuffer(f.read(), dtype=np.uint8)
+        if len(data) < max_length:
+            data = np.pad(data, (0, max_length - len(data)), 'constant')
+        else:
+            data = data[:max_length]
+    return data.reshape(-1, 1024, 1)
+
+@app.post("/detect-malware/")
+async def detect_malware(input_file: UploadFile = File(...), reference_file: UploadFile = File(...)):
+    input_file_path = f"/tmp/{input_file.filename}"
+    reference_file_path = f"/tmp/{reference_file.filename}"
+
+    with open(input_file_path, "wb") as f:
+        f.write(await input_file.read())
+    with open(reference_file_path, "wb") as f:
+        f.write(await reference_file.read())
+
+    input_data = preprocess_file(input_file_path)
+    reference_data = preprocess_file(reference_file_path)
+
+    prediction = siamese_model.predict([input_data, reference_data])
+    similarity_score = prediction[0][0]
+
+    if similarity_score > 0.5:
+        result = {"message": "The input file is likely malware.", "similarity_score": float(similarity_score)}
+    else:
+        result = {"message": "The input file is likely benign.", "similarity_score": float(similarity_score)}
+
+    return JSONResponse(content=result)
