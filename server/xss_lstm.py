@@ -31,7 +31,7 @@ model.add(Embedding(input_dim=5000, output_dim=128, input_length=max_length))
 model.add(LSTM(128, return_sequences=True))  
 model.add(Dropout(0.2))
 
-model.add(LSTM(64, return_sequences=False))  # Last LSTM layer, does not return sequences
+model.add(LSTM(64, return_sequences=False))  
 model.add(Dropout(0.2))
 
 model.add(BatchNormalization())

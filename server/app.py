@@ -14,6 +14,9 @@ from fastapi import FastAPI, File, UploadFile
 from tensorflow.keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 import pickle
+import tempfile
+import tensorflow as tf
+
 
 
 load_dotenv()
@@ -195,28 +198,23 @@ def preprocess_file(file_path, max_length=1024):
             data = data[:max_length]
     return data.reshape(-1, 1024, 1)
 
-@app.post("/detect-malware/")
-async def detect_malware(input_file: UploadFile = File(...), reference_file: UploadFile = File(...)):
-    input_file_path = f"/tmp/{input_file.filename}"
-    reference_file_path = f"/tmp/{reference_file.filename}"
+# siamese_model = tf.keras.models.load_model('siamese_malware (1).h5')  
 
-    with open(input_file_path, "wb") as f:
-        f.write(await input_file.read())
-    with open(reference_file_path, "wb") as f:
-        f.write(await reference_file.read())
+# @app.post("/detect-malware/")
+# async def detect_malware(file: UploadFile = File(...)):
+#     contents = await file.read()
+#     data = np.frombuffer(contents, dtype=np.uint8)
+#     if len(data) < 1024:
+#         data = np.pad(data, (0, 1024 - len(data)), 'constant')
+#     else:
+#         data = data[:1024]
+#     input_data = data.reshape(-1, 1024, 1)
 
-    input_data = preprocess_file(input_file_path)
-    reference_data = preprocess_file(reference_file_path)
+#     prediction = siamese_model.predict([input_data, input_data])
+#     print(prediction)
+#     similarity_score = float(prediction[0][0])
 
-    prediction = siamese_model.predict([input_data, reference_data])
-    similarity_score = prediction[0][0]
-
-    if similarity_score > 0.5:
-        result = {"message": "The input file is likely malware.", "similarity_score": float(similarity_score)}
-    else:
-        result = {"message": "The input file is likely benign.", "similarity_score": float(similarity_score)}
-
-    return JSONResponse(content=result)
+#     return JSONResponse(content={"similarity_score": similarity_score})
 
 xss_model = load_model('XSS_Detection.h5')
 tokenizer = Tokenizer(num_words=5000)
@@ -228,7 +226,6 @@ async def xss_predict(input: TextInput):
     prediction = xss_model.predict(padded_sample)
     print(prediction)
     predicted_class = np.argmax(prediction)
-    # return {"prediction": "XSS Prone!" if predicted_class == 1 else "Benign. Your code is safe!"}
     prompt = f"""Based on the following code : {input}. 
     The Predicted Class is : {predicted_class}. 0 means Benign, 1 means XSS Prone. 
     The prediction is {prediction}. 
