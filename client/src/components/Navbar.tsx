@@ -37,7 +37,7 @@ export function Navbar() {
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-6 w-[400px]">
                     <NavigationMenuLink asChild>
-                      <Link href="/solutions/malware-detection" className="block p-3 hover:bg-accent rounded-md">
+                      <Link href="/malware-threat" className="block p-3 hover:bg-accent rounded-md">
                         Malware Detection
                       </Link>
                     </NavigationMenuLink>

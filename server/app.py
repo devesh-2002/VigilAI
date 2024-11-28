@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import boto3
 from openai import OpenAI
@@ -10,14 +11,34 @@ import os
 from google_auth import get_latest_emails, get_credentials
 from tensorflow.keras.models import load_model
 from fastapi import FastAPI, File, UploadFile
+from tensorflow.keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+import pickle
+
 
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"], 
+    allow_headers=["*"], 
+)
+
+
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('Emails')
 
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+class TextInput(BaseModel):
+    text: str
+
+with open('tokenizer.pkl', 'rb') as handle:
+    tokenizer = pickle.load(handle)
 
 class EmailRequest(BaseModel):
     number_of_emails: int
@@ -189,3 +210,26 @@ async def detect_malware(input_file: UploadFile = File(...), reference_file: Upl
         result = {"message": "The input file is likely benign.", "similarity_score": float(similarity_score)}
 
     return JSONResponse(content=result)
+
+xss_model = load_model('XSS_Detection.h5')
+tokenizer = Tokenizer(num_words=5000)
+
+@app.post('/xss-predict')
+async def xss_predict(input: TextInput):
+    sample_sequence = tokenizer.texts_to_sequences([input.text])
+    padded_sample = pad_sequences(sample_sequence, maxlen=100)
+    prediction = xss_model.predict(padded_sample)
+    print(prediction)
+    predicted_class = np.argmax(prediction)
+    # return {"prediction": "XSS Prone!" if predicted_class == 1 else "Benign. Your code is safe!"}
+    prompt = f"Based on the following code : {input}. Suggest some changes that can make the code more safe from Cross Site Scripting attacks."
+    openai_response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+    )
+    generated_response = openai_response.choices[0].message.content
+    print(generated_response)
+    return predicted_class if predicted_class == 1 else generated_response
+
+
+
