@@ -1,8 +1,8 @@
 'use client';
 
-import { Button } from "@/components/ui/button"
-import { Moon, Sun, Shield } from 'lucide-react'
-import { useTheme } from "next-themes"
+import { Button } from "@/components/ui/button";
+import { Shield } from 'lucide-react';
+import { useTheme } from "next-themes";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -10,12 +10,12 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu"
-import Link from 'next/link'
+} from "@/components/ui/navigation-menu";
+import Link from 'next/link';
 import { ModeToggle } from "./mode-toggle";
 
 export function Navbar() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <nav className="border-b">
@@ -32,8 +32,9 @@ export function Navbar() {
         <div className="flex items-center space-x-6">
           <NavigationMenu>
             <NavigationMenuList className="space-x-2">
+              {/* Malware Detection, Mail Checker, XSS */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Solutions</NavigationMenuTrigger>
+                <NavigationMenuTrigger>Malware Detection</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-6 w-[400px]">
                     <NavigationMenuLink asChild>
@@ -41,14 +42,17 @@ export function Navbar() {
                         Malware Detection
                       </Link>
                     </NavigationMenuLink>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Mail Checker</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid gap-3 p-6 w-[400px]">
                     <NavigationMenuLink asChild>
-                      <Link href="/solutions/network-security" className="block p-3 hover:bg-accent rounded-md">
-                        Network Security
-                      </Link>
-                    </NavigationMenuLink>
-                    <NavigationMenuLink asChild>
-                      <Link href="/solutions/endpoint-protection" className="block p-3 hover:bg-accent rounded-md">
-                        Endpoint Protection
+                      <Link href="/mail_chatbot" className="block p-3 hover:bg-accent rounded-md">
+                        Mail Checker
                       </Link>
                     </NavigationMenuLink>
                   </div>
@@ -56,45 +60,12 @@ export function Navbar() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                <NavigationMenuTrigger>XSS</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-6 w-[400px]">
                     <NavigationMenuLink asChild>
-                      <Link href="/resources/documentation" className="block p-3 hover:bg-accent rounded-md">
-                        Documentation
-                      </Link>
-                    </NavigationMenuLink>
-                    <NavigationMenuLink asChild>
-                      <Link href="/resources/blog" className="block p-3 hover:bg-accent rounded-md">
-                        Blog
-                      </Link>
-                    </NavigationMenuLink>
-                    <NavigationMenuLink asChild>
-                      <Link href="/resources/case-studies" className="block p-3 hover:bg-accent rounded-md">
-                        Case Studies
-                      </Link>
-                    </NavigationMenuLink>
-                  </div>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>Contact Us</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <div className="grid gap-3 p-6 w-[400px]">
-                    <NavigationMenuLink asChild>
-                      <Link href="/about" className="block p-3 hover:bg-accent rounded-md">
-                        About Us
-                      </Link>
-                    </NavigationMenuLink>
-                    <NavigationMenuLink asChild>
-                      <Link href="/careers" className="block p-3 hover:bg-accent rounded-md">
-                        Careers
-                      </Link>
-                    </NavigationMenuLink>
-                    <NavigationMenuLink asChild>
-                      <Link href="/contact" className="block p-3 hover:bg-accent rounded-md">
-                        Contact
+                      <Link href="/xss" className="block p-3 hover:bg-accent rounded-md">
+                        XSS Protection
                       </Link>
                     </NavigationMenuLink>
                   </div>
@@ -103,11 +74,7 @@ export function Navbar() {
             </NavigationMenuList>
           </NavigationMenu>
 
-          {/* Action Buttons */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" asChild>
-              <Link href="/signin">Sign In</Link>
-            </Button>
             <Button asChild>
               <Link href="/get-started">Get Started</Link>
             </Button>
@@ -116,5 +83,5 @@ export function Navbar() {
         </div>
       </div>
     </nav>
-  )
+  );
 }

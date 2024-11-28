@@ -39,11 +39,11 @@ export default function XssChecker() {
       </Card>
 
       {result && (
-        <Alert className="mt-4 max-w-2xl mx-auto">
-          <AlertTitle>Result</AlertTitle>
-          <AlertDescription>{result}</AlertDescription>
-        </Alert>
-      )}
+    <div className="mt-4 max-w-2xl mx-auto">
+        <AlertTitle>Result</AlertTitle>
+        <AlertDescription style={{ whiteSpace: 'pre-line' }}>{result}</AlertDescription>
+    </div>
+)}
 
       {error && (
         <Alert variant="destructive" className="mt-4 max-w-2xl mx-auto">

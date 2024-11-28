@@ -11,20 +11,21 @@ export function useXssCheck() {
     setResult(null)
 
     try {
-      const response = await fetch('http://localhost:8000/xss', {
+      const response = await fetch('http://localhost:8000/xss-predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ text: code }),
       })
-
+      console.log(response)
       if (!response.ok) {
         throw new Error('Failed to check XSS vulnerability')
       }
 
       const data = await response.json()
-      setResult(data.result)
+      console.log(data)
+      setResult(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {

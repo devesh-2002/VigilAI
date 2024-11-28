@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import boto3
@@ -42,7 +42,12 @@ with open('tokenizer.pkl', 'rb') as handle:
 
 class EmailRequest(BaseModel):
     number_of_emails: int
+class QueryRequest(BaseModel):
+    query: str
 
+class XssRequest(BaseModel):
+    text: str 
+    
 @app.get('/')
 async def index():
     return "Hello World"
@@ -64,10 +69,11 @@ async def get_emails(request: EmailRequest):
         sender = next((header['value'] for header in payload['headers'] if header['name'] == 'From'), None)
 
         plain_text_body = None
-        for part in payload['parts']:
-            if part['mimeType'] == 'text/plain':
-                plain_text_body = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
-                break  
+        if 'parts' in payload:
+            for part in payload['parts']:
+                if part['mimeType'] == 'text/plain':
+                    plain_text_body = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+                    break  
 
         if plain_text_body is None:
             print(f"Email ID {email_id} has no plain text body.")
@@ -95,9 +101,10 @@ async def get_emails(request: EmailRequest):
 
 
 @app.post('/query-email/')
-async def query_email(query: str):
+async def query_email(query: QueryRequest):
+    print(f"Received query: {query}")
     query_embedding_response = client.embeddings.create(
-        input=query,
+        input=str(query),
         model="text-embedding-3-small"
     )
     query_embedding = query_embedding_response.data[0].embedding
@@ -119,7 +126,7 @@ async def query_email(query: str):
         return {"response": "No relevant emails found."}
 
     email_contents = "\n".join([f"From: {email['from']}\nSubject: {email['subject']}\nBody: {email['plain_text_body']}" for email, _ in top_emails])
-    prompt = f"Based on the following emails, answer the query: '{query}'\n\nEmails:\n{email_contents}\n\nResponse:"
+    prompt = f"Based on the following emails, Be elaborate if possible. answer the query. : '{query}'\n\nEmails:\n{email_contents}\n\nResponse:"
 
     try:
         openai_response = client.chat.completions.create(
@@ -222,14 +229,20 @@ async def xss_predict(input: TextInput):
     print(prediction)
     predicted_class = np.argmax(prediction)
     # return {"prediction": "XSS Prone!" if predicted_class == 1 else "Benign. Your code is safe!"}
-    prompt = f"Based on the following code : {input}. Suggest some changes that can make the code more safe from Cross Site Scripting attacks."
+    prompt = f"""Based on the following code : {input}. 
+    The Predicted Class is : {predicted_class}. 0 means Benign, 1 means XSS Prone. 
+    The prediction is {prediction}. 
+    You need to give the result in terms of percentage, and what it means. 
+    You also don't need to tell whether the prediction is correct or not.
+    You need to give some suggestions to make improvements in the given code regardless of the prediction, atleast few suggestions should be related to  the current code.
+    ."""
     openai_response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
     )
     generated_response = openai_response.choices[0].message.content
     print(generated_response)
-    return predicted_class if predicted_class == 1 else generated_response
+    return generated_response
 
 
 
