@@ -200,21 +200,21 @@ def preprocess_file(file_path, max_length=1024):
 
 # siamese_model = tf.keras.models.load_model('siamese_malware (1).h5')  
 
-# @app.post("/detect-malware/")
-# async def detect_malware(file: UploadFile = File(...)):
-#     contents = await file.read()
-#     data = np.frombuffer(contents, dtype=np.uint8)
-#     if len(data) < 1024:
-#         data = np.pad(data, (0, 1024 - len(data)), 'constant')
-#     else:
-#         data = data[:1024]
-#     input_data = data.reshape(-1, 1024, 1)
+@app.post("/detect-malware/")
+async def detect_malware(file: UploadFile = File(...)):
+    contents = await file.read()
+    data = np.frombuffer(contents, dtype=np.uint8)
+    if len(data) < 1024:
+        data = np.pad(data, (0, 1024 - len(data)), 'constant')
+    else:
+        data = data[:1024]
+    input_data = data.reshape(-1, 1024, 1)
 
-#     prediction = siamese_model.predict([input_data, input_data])
-#     print(prediction)
-#     similarity_score = float(prediction[0][0])
+    prediction = siamese_model.predict([input_data, input_data])
+    print(prediction)
+    similarity_score = float(prediction[0][0])
 
-#     return JSONResponse(content={"similarity_score": similarity_score})
+    return JSONResponse(content={"similarity_score": similarity_score})
 
 xss_model = load_model('XSS_Detection.h5')
 tokenizer = Tokenizer(num_words=5000)
